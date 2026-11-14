@@ -1,6 +1,7 @@
 package br.edu.ifsp.web.servlet;
 
 import br.edu.ifsp.web.command.*;
+import br.edu.ifsp.web.service.TarefaService;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -10,37 +11,37 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@WebServlet("/tarefas/*")            // captura /tarefas E /tarefas/{id}
+@WebServlet("/tarefas/*")
 public class FrontController extends HttpServlet {
 
-    // mapa: método HTTP -> objeto Command
     private final Map<String, Command> comandos = new HashMap<>();
 
-    // init() roda UMA vez, na subida do servlet.
-    // Adicionar um endpoint = uma linha aqui. O controlador não muda.
     @Override
     public void init() {
-        comandos.put("GET",    new ListarTarefasCommand());
-        comandos.put("POST",   new CriarTarefaCommand());
-        comandos.put("PUT",    new AtualizarTarefaCommand());
-        comandos.put("DELETE", new DeletarTarefaCommand());
+        TarefaService servico = (TarefaService) getServletContext().getAttribute("tarefaService");
+
+        comandos.put("GET",          new ListarTarefasCommand(servico));
+        comandos.put("POST",         new CriarTarefaCommand(servico));
+        comandos.put("GET/{id}",     new BuscarTarefaCommand(servico));
+        comandos.put("PUT/{id}",     new AtualizarTarefaCommand(servico));
+        comandos.put("PATCH/{id}",   new ConcluirTarefaCommand(servico));
+        comandos.put("DELETE/{id}",  new DeletarTarefaCommand(servico));
     }
 
-    // service() é chamado pelo container para TODA requisição a /tarefas/*
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getPathInfo();
+        boolean temId = path != null && !path.equals("/");
+        Command comando = comandos.get(req.getMethod() + (temId ? "/{id}" : ""));
+
         try {
-            Command comando = comandos.get(req.getMethod());   // verbo -> comando
-            if (comando != null) {
-                comando.executar(req, resp);
-            } else {
-                resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);  // 405
+            if (comando == null) {
+                RespostaJson.erro(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Metodo nao permitido.");
+                return;
             }
+            comando.executar(req, resp);
         } catch (Exception e) {
-            // Um único ponto trata a exceção de QUALQUER comando
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,    // 500
-                           e.getMessage());
+            RespostaJson.erro(resp, e);
         }
     }
 }

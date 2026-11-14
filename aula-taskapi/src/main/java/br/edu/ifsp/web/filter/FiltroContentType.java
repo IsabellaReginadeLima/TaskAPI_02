@@ -1,11 +1,12 @@
 package br.edu.ifsp.web.filter;
 
+import br.edu.ifsp.web.servlet.RespostaJson;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -14,7 +15,6 @@ import java.io.IOException;
 // BÔNUS: POST e PUT só passam se o corpo for declarado como JSON.
 // Caso contrário, o filtro "fecha a porta" com 415 e a requisição
 // nem chega ao FrontController.
-@WebFilter("/tarefas/*")
 public class FiltroContentType implements Filter {
 
     @Override
@@ -30,7 +30,7 @@ public class FiltroContentType implements Filter {
         if (temCorpo) {
             String tipo = httpReq.getContentType();   // ex.: "application/json; charset=UTF-8"
             if (tipo == null || !tipo.toLowerCase().startsWith("application/json")) {
-                httpResp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE,   // 415
+                RespostaJson.erro(httpResp, HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE,   // 415
                         "Content-Type deve ser application/json");
                 return;   // NÃO chama chain.doFilter: a requisição para aqui
             }
