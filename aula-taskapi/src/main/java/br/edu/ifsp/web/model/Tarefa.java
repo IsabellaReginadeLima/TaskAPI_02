@@ -3,17 +3,44 @@ package br.edu.ifsp.web.model;
 public class Tarefa {
 
     private int id;
+    private int usuarioId;
     private String titulo;
     private String descricao;
     private boolean concluida;
 
-    public Tarefa() {}   // construtor vazio: o Gson precisa dele
-
-    public Tarefa(int id, String titulo, String descricao, boolean concluida) {
+    public Tarefa(int usuarioId, String titulo, String descricao) {
+        this.usuarioId = usuarioId;
+        alterar(titulo, descricao);
+    }
+    
+    public Tarefa(int id, int usuarioId, String titulo, String descricao) {
+        this(usuarioId, titulo, descricao);
         this.id = id;
-        this.titulo = titulo;
+    }
+    
+    public void alterar(String titulo, String descricao) {
+        if (titulo == null || titulo.isBlank()) {
+            throw new IllegalArgumentException("Titulo obrigatorio.");
+        }
+        if (titulo.trim().length() > 120) {
+            throw new IllegalArgumentException("Titulo deve ter no maximo 120 caracteres.");
+        }
+        if (descricao != null && descricao.length() > 500) {
+            throw new IllegalArgumentException("Descricao deve ter no maximo 500 caracteres.");
+        }
+        this.titulo = titulo.trim();
         this.descricao = descricao;
-        this.concluida = concluida;
+    }
+
+    public void concluir() {
+        if (concluida) {
+            throw new IllegalStateException("Tarefa ja concluida.");
+        }
+        concluida = true;
+    }
+
+    public boolean pertenceA(Usuario usuario) {
+        return usuario != null && usuario.getId() == usuarioId;
     }
 
     // Getters e setters de cada campo
@@ -28,4 +55,6 @@ public class Tarefa {
 
     public boolean isConcluida()        { return concluida; }
     public void setConcluida(boolean c) { this.concluida = c; }
+    
+    public int getUsuarioId()     { return usuarioId; }
 }

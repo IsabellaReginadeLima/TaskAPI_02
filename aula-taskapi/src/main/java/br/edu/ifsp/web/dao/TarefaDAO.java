@@ -9,49 +9,52 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class TarefaDAO {
 
+    private static final String COLUNAS = "id, usuario_id, titulo, descricao, concluida";
+
     private final Connection conexao;
 
-    // Agora o DAO RECEBE a conexão pronta (aberta pelo FiltroConexao).
-    // Ele não abre nem fecha conexão — essa responsabilidade saiu daqui.
     public TarefaDAO(Connection conexao) {
         this.conexao = conexao;
     }
 
-    // TODO: reimplemente os quatro métodos usando 'this.conexao'
-    // (PreparedStatement sobre a conexão recebida — NÃO abra outra):
-    public List<Tarefa> listar() throws SQLException {
-        String sql = "SELECT id, titulo, descricao, concluida FROM tarefas ORDER BY id";
+    public List<Tarefa> listarPorUsuario(int usuarioId) throws SQLException {
+        String sql = "SELECT " + COLUNAS + " FROM tarefas WHERE usuario_id = ? ORDER BY id";
         List<Tarefa> tarefas = new ArrayList<>();
-
-        // try-with-resources fecha o PreparedStatement e o ResultSet,
-        // mas NÃO fecha a conexão (ela é do filtro).
-        try (PreparedStatement ps = conexao.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                tarefas.add(new Tarefa(
-                        rs.getInt("id"),
-                        rs.getString("titulo"),
-                        rs.getString("descricao"),
-                        rs.getBoolean("concluida")));
+        try (PreparedStatement ps = conexao.prepareStatement(sql)) {
+            ps.setInt(1, usuarioId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    tarefas.add(montar(rs));
+                }
             }
         }
         return tarefas;
     }
 
-    public void inserir(Tarefa t) throws SQLException {
-        String sql = "INSERT INTO tarefas (titulo, descricao, concluida) VALUES (?, ?, ?)";
+    public Optional<Tarefa> buscar(int id, int usuarioId, boolean bloquear) throws SQLException {
+        String sql = "SELECT " + COLUNAS + " FROM tarefas WHERE id = ? AND usuario_id = ?"
+                + (bloquear ? " FOR UPDATE" : "");
+        try (PreparedStatement ps = conexao.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.setInt(2, usuarioId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(montar(rs)) : Optional.empty();
+            }
+        }
+    }
 
-        try (PreparedStatement ps =
-                     conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    public void inserir(Tarefa t) throws SQLException {
+        String sql = "INSERT INTO tarefas (titulo, descricao, concluida, usuario_id) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, t.getTitulo());
             ps.setString(2, t.getDescricao());
             ps.setBoolean(3, t.isConcluida());
+            ps.setInt(4, t.getUsuarioId());
             ps.executeUpdate();
-
-            // devolve o id gerado pelo AUTO_INCREMENT para o objeto
             try (ResultSet chaves = ps.getGeneratedKeys()) {
                 if (chaves.next()) {
                     t.setId(chaves.getInt(1));
@@ -60,24 +63,37 @@ public class TarefaDAO {
         }
     }
 
-    public boolean atualizar(int id, Tarefa t) throws SQLException {
-        String sql = "UPDATE tarefas SET titulo = ?, descricao = ?, concluida = ? WHERE id = ?";
-
+    public boolean atualizar(Tarefa t) throws SQLException {
+        String sql = "UPDATE tarefas SET titulo = ?, descricao = ?, concluida = ? "
+                + "WHERE id = ? AND usuario_id = ?";
         try (PreparedStatement ps = conexao.prepareStatement(sql)) {
             ps.setString(1, t.getTitulo());
             ps.setString(2, t.getDescricao());
             ps.setBoolean(3, t.isConcluida());
-            ps.setInt(4, id);
-            return ps.executeUpdate() > 0;   // 0 linhas afetadas = id não existe
+            ps.setInt(4, t.getId());
+            ps.setInt(5, t.getUsuarioId());
+            return ps.executeUpdate() > 0;
         }
     }
 
-    public boolean deletar(int id) throws SQLException {
-        String sql = "DELETE FROM tarefas WHERE id = ?";
-
+    public boolean deletar(int id, int usuarioId) throws SQLException {
+        String sql = "DELETE FROM tarefas WHERE id = ? AND usuario_id = ?";
         try (PreparedStatement ps = conexao.prepareStatement(sql)) {
             ps.setInt(1, id);
+            ps.setInt(2, usuarioId);
             return ps.executeUpdate() > 0;
         }
+    }
+
+    private Tarefa montar(ResultSet rs) throws SQLException {
+        Tarefa t = new Tarefa(
+                rs.getInt("id"),
+                rs.getInt("usuario_id"),
+                rs.getString("titulo"),
+                rs.getString("descricao"));
+        if (rs.getBoolean("concluida")) {
+            t.concluir();
+        }
+        return t;
     }
 }
