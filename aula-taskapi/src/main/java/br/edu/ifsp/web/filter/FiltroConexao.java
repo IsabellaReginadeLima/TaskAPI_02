@@ -26,8 +26,12 @@ public class FiltroConexao implements Filter {
         ConnectionFactory fabrica = (ConnectionFactory)
                 req.getServletContext().getAttribute("connectionFactory");
 
-        // b) abra uma Connection
-        Connection conexao = fabrica.getConnection();
+        Connection conexao;
+        try {
+            conexao = fabrica.getConnection();
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
 
         try {
             // c) publique-a no request: req.setAttribute("conexao", conexao);
