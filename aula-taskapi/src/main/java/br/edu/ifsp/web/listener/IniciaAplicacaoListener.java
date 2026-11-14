@@ -1,6 +1,9 @@
 package br.edu.ifsp.web.listener;
 
 import br.edu.ifsp.web.dao.ConnectionFactory;
+import br.edu.ifsp.web.service.AutenticacaoServiceImpl;
+import br.edu.ifsp.web.service.TarefaServiceImpl;
+import br.edu.ifsp.web.service.Transacao;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
@@ -29,18 +32,17 @@ public class IniciaAplicacaoListener implements ServletContextListener {
             System.err.println("[TaskAPI] Driver MySQL não encontrado em WEB-INF/lib!");
         }
 
-        // TODO 1: crie uma ConnectionFactory e publique-a no ServletContext
-        //         com a chave "connectionFactory".
-        ctx.setAttribute("connectionFactory", new ConnectionFactory());
+        Transacao transacao = new Transacao(new ConnectionFactory());
+        ctx.setAttribute("tarefaService", new TarefaServiceImpl(transacao));
+        ctx.setAttribute("autenticacaoService", new AutenticacaoServiceImpl(transacao));
 
-        // TODO 2: registre no console que a aplicação iniciou.
-        System.out.println("[TaskAPI] Aplicação INICIADA em " + LocalDateTime.now()
-                + " — ConnectionFactory publicada no ServletContext.");
+        System.out.println("[TaskAPI] Aplicação INICIADA em " + LocalDateTime.now());
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent e) {
-        e.getServletContext().removeAttribute("connectionFactory");
+        e.getServletContext().removeAttribute("tarefaService");
+        e.getServletContext().removeAttribute("autenticacaoService");
 
         // Boa prática: desregistra o driver carregado por esta aplicação
         // para o Tomcat não acusar vazamento de memória no redeploy.
