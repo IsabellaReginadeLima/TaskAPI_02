@@ -25,7 +25,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
                 c -> new UsuarioDAO(c).buscarPorEmail(email.trim()));
 
         // Verifica o hash mesmo sem usuário para o tempo de resposta não revelar e-mails
-        String hash = encontrado.map(Usuario::getSenhaHash).orElse(HASH_FALSO);
+        String hash = encontrado.map(Usuario::getSenha).orElse(HASH_FALSO);
         boolean senhaOk = Senhas.verificar(senha, hash);
 
         if (encontrado.isEmpty() || !senhaOk) {
