@@ -1,13 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Versão 6.0 (Jakarta EE 10 / Tomcat 10.1+). Um web.xml 2.4 faz o Tomcat
-  IGNORAR anotações (@WebServlet, @WebFilter, @WebListener), por isso a troca.
-  metadata-complete="false" deixa explícito que as anotações devem ser lidas.
--->
 <web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0"
          metadata-complete="false">
 	<display-name>aula-taskapi</display-name>
+
+	<!-- A ordem dos filter-mapping define a ordem da cadeia -->
+	<filter>
+		<filter-name>FiltroTempoDeExecucao</filter-name>
+		<filter-class>br.edu.ifsp.web.filter.FiltroTempoDeExecucao</filter-class>
+	</filter>
+	<filter>
+		<filter-name>FiltroAutenticacao</filter-name>
+		<filter-class>br.edu.ifsp.web.filter.FiltroAutenticacao</filter-class>
+	</filter>
+	<filter>
+		<filter-name>FiltroContentType</filter-name>
+		<filter-class>br.edu.ifsp.web.filter.FiltroContentType</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>FiltroTempoDeExecucao</filter-name>
+		<url-pattern>/tarefas/*</url-pattern>
+		<url-pattern>/auth/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>FiltroAutenticacao</filter-name>
+		<url-pattern>/tarefas/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>FiltroContentType</filter-name>
+		<url-pattern>/tarefas/*</url-pattern>
+	</filter-mapping>
+
+	<session-config>
+		<session-timeout>30</session-timeout>
+		<cookie-config>
+			<http-only>true</http-only>
+		</cookie-config>
+		<tracking-mode>COOKIE</tracking-mode>
+	</session-config>
 </web-app>
