@@ -43,7 +43,7 @@ Os parâmetros de acesso ao banco podem ser definidos por variáveis de ambiente
 
 | Parâmetro | Finalidade | Valor padrão |
 |---|---|---|
-| `TASKDB_URL` | Endereço de conexão JDBC | `jdbc:mysql://localhost:3306/taskdb` |
+| `TASKDB_URL` | Endereço de conexão JDBC | `jdbc:mysql://localhost:3307/taskdb` |
 | `TASKDB_USER` | Usuário do MySQL | `root` |
 | `TASKDB_PASS` | Senha de acesso | Vazia |
 
@@ -55,8 +55,8 @@ O banco disponibiliza dois usuários fictícios para verificar a autenticação 
 
 | Identificação | E-mail | Senha |
 |---|---|---|
-| Usuário A — Ana | `isabella@taskapi.test` | `isa123` |
-| Usuário B — Bruno | `douglas@taskapi.test` | `douglas123` |
+| Usuário A — Isabella | `isabella@taskapi.test` | `isa123` |
+| Usuário B — Douglas | `douglas@taskapi.test` | `douglas123` |
 
 As credenciais são utilizadas exclusivamente para testes.
 
