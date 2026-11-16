@@ -27,7 +27,7 @@ INSERT INTO usuarios (id, nome, email, senha) VALUES
 
 
 -- Alguns registros para testar o GET
-INSERT INTO tarefas (titulo, descricao, concluida) VALUES
+INSERT INTO tarefas (titulo, descricao, concluida, usuario_id) VALUES
 ('Estudar filtros','Ler o material da aula', FALSE, 1),
 ('Configurar o banco', 'MySQL + driver', TRUE, 1),
 ('Colher plantas', 'limpar o jardim', FALSE, 1),

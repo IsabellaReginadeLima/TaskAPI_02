@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class ConnectionFactory {
 
-    private final String url  = config("TASKDB_URL", "jdbc:mysql://localhost:3306/taskdb");
+    private final String url  = config("TASKDB_URL", "jdbc:mysql://localhost:3307/taskdb");
     private final String user = config("TASKDB_USER", "root");
     private final String pass = config("TASKDB_PASS", "");
 

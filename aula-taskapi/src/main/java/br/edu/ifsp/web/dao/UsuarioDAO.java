@@ -17,7 +17,7 @@ public class UsuarioDAO {
     }
 
     public Optional<Usuario> buscarPorEmail(String email) throws SQLException {
-        String sql = "SELECT id, nome, email, senha_hash FROM usuarios WHERE email = ?";
+        String sql = "SELECT id, nome, email, senha FROM usuarios WHERE email = ?";
         try (PreparedStatement ps = conexao.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
@@ -28,7 +28,7 @@ public class UsuarioDAO {
                         rs.getInt("id"),
                         rs.getString("nome"),
                         rs.getString("email"),
-                        rs.getString("senha_hash")));
+                        rs.getString("senha")));
             }
         }
     }
